@@ -1,21 +1,16 @@
 package com.devs.vectorchildfinderdemo;
 
-import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.devs.vectorchildfinder.VectorChildFinder;
 import com.devs.vectorchildfinder.VectorDrawableCompat;
 //import android.support.graphics.drawable.VectorDrawableCompat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
         dressPath = vector.findPathByName("dress_path");
         mouthGroup = vector.findGroupByName("mouth_group");
         eyesGroup = vector.findGroupByName("eyes_group");
+
+        dressPath.setOnClickListener(() -> Log.d("PIPPO", "CLICKED!"));
     }
 
     boolean e = true, m = true;

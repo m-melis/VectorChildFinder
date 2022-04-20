@@ -1,6 +1,7 @@
 package com.devs.vectorchildfinder;
 
 import android.content.Context;
+import android.view.MotionEvent;
 import android.widget.ImageView;
 
 /**
@@ -23,6 +24,13 @@ public class VectorChildFinder {
                 vectorRes, null);
         vectorDrawable.setAllowCaching(false);
         imageView.setImageDrawable(vectorDrawable);
+        imageView.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                v.performClick();
+            }
+            vectorDrawable.getTouchedPath(event);
+            return true;
+        });
     }
 
 

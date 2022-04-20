@@ -34,30 +34,34 @@ import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Region;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.os.Build;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.RestrictTo;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.util.ArrayMap;
 import android.util.AttributeSet;
 import android.util.LayoutDirection;
 import android.util.Log;
 import android.util.Xml;
+import android.view.MotionEvent;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.RestrictTo;
+import androidx.collection.ArrayMap;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Stack;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 
 public class VectorDrawableCompat extends VectorDrawableCommon {
@@ -1388,6 +1392,7 @@ public class VectorDrawableCompat extends VectorDrawableCommon {
         protected PathParser.PathDataNode[] mNodes = null;
         String mPathName;
         int mChangingConfigurations;
+        OnPathClickListener mOnClickListener;
 
         public VPath() {
             // Empty constructor.
@@ -1458,6 +1463,62 @@ public class VectorDrawableCompat extends VectorDrawableCommon {
                 PathParser.updateNodes(mNodes, nodes);
             }
         }
+
+        public boolean isTouched(Float x, Float y)  {
+            RectF rectF = new RectF();
+            Path path = new Path();
+            toPath(path);
+            path.computeBounds(rectF, true);
+            Region region = new Region();
+            region.setPath(path, 
+                new Region((int) rectF.left, (int) rectF.top,
+                    (int) rectF.right, (int) rectF.bottom));
+
+            int offset = 10;
+            int x_int = Math.round(x);
+            int y_int = Math.round(y);
+            return (region.contains(x_int, y_int)
+                || region.contains(x_int + offset, y_int + offset)
+                || region.contains(x_int + offset, y_int - offset)
+                || region.contains(x_int - offset, y_int - offset)
+                || region.contains(x_int - offset, y_int + offset));
+        }
+
+        public void setOnClickListener(OnPathClickListener onClickListener) {
+            mOnClickListener = onClickListener;
+        }
+
+        public void onClick(){
+            if(mOnClickListener != null) {
+                mOnClickListener.onClick();
+            }
+        }
+
+    }
+
+    public interface OnPathClickListener {
+        void onClick();
+    }
+
+    public void getTouchedPath(MotionEvent event) {
+
+        if (event.getAction() != MotionEvent.ACTION_UP) {
+            return;
+        }
+
+        ArrayMap<String, Object> pathsMap = mVectorState.mVPathRenderer.mVGTargetsMap;
+        for (Map.Entry<String, Object> e : pathsMap.entrySet()) {
+            try {
+                VPath p = (VectorDrawableCompat.VPath) e.getValue();
+                Log.d("PIPPO", e.toString());
+                boolean isTouched = p.isTouched(event.getX(), event.getY());
+                Log.d("PIPPO", String.valueOf(isTouched));
+                if(isTouched) {
+                    p.onClick();
+                }
+            } catch (ClassCastException ignored) { }
+        }
+
     }
 
     /**
